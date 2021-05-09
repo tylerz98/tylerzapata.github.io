@@ -1,0 +1,24 @@
+{
+    "id": "40E98087",
+    "path": "~/website/config.toml",
+    "project_path": "config.toml",
+    "type": "toml",
+    "hash": "716675272",
+    "contents": "",
+    "dirty": false,
+    "created": 1620590896628.0,
+    "source_on_save": false,
+    "relative_order": 2,
+    "properties": {
+        "cursorPosition": "16,33",
+        "scrollLine": "6"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1620591504,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1620591504393,
+    "read_only": false,
+    "read_only_alternatives": []
+}

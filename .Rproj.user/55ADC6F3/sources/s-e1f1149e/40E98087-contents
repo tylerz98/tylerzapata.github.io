@@ -1,0 +1,48 @@
+baseurl = "/"
+languageCode = "en-US"
+title = "Chris Turner"
+# Enable comments by entering your Disqus shortname
+disqusShortname = ""
+# Enable Google Analytics by entering your tracking code
+googleAnalytics = ""
+theme = "hugo-sustain"
+
+[permalinks]
+  post = "/post/:year/:month/:day/:slug"
+
+[params]
+  avatar = "3G.png"
+  author = "Tyler Zapata"
+  occupation = "Professional Procrastinator"
+  about = "I love all things dog."
+
+  # Custom assets can be linked with their paths relative to static/
+  custom_css = []
+  custom_js  = []
+
+[params.social]
+  Github        = "tylerz98"
+  Email         = "tyler.zapata@utexas.edu"
+  Twitter       = "TylerZ_98"
+  LinkedIn      = "N/A"
+  Instagram     = "tylerz_98"
+#  Stackoverflow = "username"
+#  Medium        = "username"
+#  Telegram      = "username"
+
+## Main Menu
+[[menu.main]]
+  name = "blog"
+  weight = 100
+  identifier = "blog"
+  url = "/post/"
+[[menu.main]]
+  name = "projects"
+  identifier = "projects"
+  weight = 200
+  url = "/projects/"
+[[menu.main]]
+  name = "resume"
+  identifier = "resume"
+  weight = 300
+  url = "/resume/"

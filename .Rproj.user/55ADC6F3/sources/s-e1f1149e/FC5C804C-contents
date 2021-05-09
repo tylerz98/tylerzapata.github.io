@@ -1,0 +1,67 @@
+---
+title: "WS21"
+author: "SDS348"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+## R Markdown is really cool
+
+In case you still aren't convinced, you can add codechunks in any of the following languages:
+
+```{r}
+names(knitr::knit_engines$get())
+```
+
+For example
+
+```{python}
+hw = "hello world"
+hw[0:11]
+
+```
+
+But it gets even cooler!
+
+### Reticulate package lets R and Python play together!
+
+```{R}
+#R code chunk
+library(reticulate)
+
+hi<-"Hello"
+```
+
+```{python}
+#Python code chunk
+hi="world"
+print(r.hi,hi) #access R-defined objects with r. 
+```
+
+```{R}
+#R code chunk
+cat(c(hi,py$hi)) #access Python-defined objects with py$
+```
+
+
+### Here's another example
+
+```{python}
+import matplotlib.pyplot as plt
+
+x=np.random.normal(0,1,50) #use numpy.random to take random samples
+y=np.random.normal(0,1,50)
+
+plt.scatter(x,y)
+```
+
+Let's use the data generated in python to create a ggplot plot in R:
+
+```{R}
+library(ggplot2)
+ggplot()+geom_point(aes(py$x,py$y))
+```
