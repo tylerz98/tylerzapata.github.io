@@ -5,29 +5,24 @@
     <link>/</link>
     <description>Recent content on Chris Turner</description>
     <generator>Hugo -- gohugo.io</generator>
-    <language>en-US</language>
-    <lastBuildDate>Thu, 23 Jul 2015 21:13:14 -0500</lastBuildDate><atom:link href="/index.xml" rel="self" type="application/rss+xml" />
+    <language>en-US</language><atom:link href="/index.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>Hello R Markdown</title>
-      <link>/post/2015/07/23/hello-r-markdown/</link>
-      <pubDate>Thu, 23 Jul 2015 21:13:14 -0500</pubDate>
+      <title>Project1</title>
+      <link>/project/project1/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
-      <guid>/post/2015/07/23/hello-r-markdown/</guid>
-      <description>R Markdown This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see http://rmarkdown.rstudio.com.
-You can embed an R code chunk like this:
-summary(cars) ## speed dist ## Min. : 4.0 Min. : 2.00 ## 1st Qu.:12.0 1st Qu.: 26.00 ## Median :15.0 Median : 36.00 ## Mean :15.4 Mean : 42.98 ## 3rd Qu.</description>
+      <guid>/project/project1/</guid>
+      <description>Tyler Zapata, tjz283 Introduction: I found my datasets from https://github.com/fivethirtyeight/data&amp;gt; I picked one dataset that had the information about each member of congress from 1947 to 2014, including what congress they served, when they started, which house they were in, and more. My other dataset had information about congressmen during Trump’s presidency including congress, chamber, and statistics about how certain members agreed or disagreed with Trump’s policies. These two datasets were interesting to me because I wanted to see if incumbent members of congress, Republican or Democrat, had a higher chance of agree or disagreeing with Trump’s policies.</description>
     </item>
     
     <item>
-      <title>Projects</title>
-      <link>/projects/</link>
+      <title>Project2</title>
+      <link>/project/project2/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
-      <guid>/projects/</guid>
-      <description> Check out some of my coding projects below:
- Wrangling &amp;amp; Exploratory Data Analysis
- Modeling, Inference, Prediction
-  -- </description>
+      <guid>/project/project2/</guid>
+      <description>Tyler Zapata Introduction:
+I found my datasets from https://github.com/fivethirtyeight/data&amp;gt; I picked one dataset that had the information about police killings from the year 2015. The variables I will be focusing on are whether or not a person was armed (armed), age (age), gender (gender), race/ethnicity (raceethnicity), cause (cause), the proportion of adults 25+ in the population with BA or higher (college), and the percentage of that population that is white, black, or hispanic (share_white, share_black, and share_hispanic).</description>
     </item>
     
     <item>
@@ -36,7 +31,7 @@ summary(cars) ## speed dist ## Min. : 4.0 Min. : 2.00 ## 1st Qu.:12.0 1st Qu.: 2
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
       <guid>/resume/</guid>
-      <description>    </description>
+      <description></description>
     </item>
     
   </channel>

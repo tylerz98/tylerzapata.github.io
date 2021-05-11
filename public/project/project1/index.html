@@ -7,7 +7,7 @@
     <meta name="author" content="Tyler Zapata" />
     
     <link rel="shortcut icon" type="image/x-icon" href="../../img/favicon.ico">
-    <title>Project 1</title>
+    <title>Project1</title>
     <meta name="generator" content="Hugo 0.83.1" />
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
     <link rel="stylesheet" type="text/css" href="../../css/main.css" />
@@ -54,13 +54,13 @@
       <div class="container">
         <div class="blog-post">
           <h3>
-            <strong><a href="../../project/project1/">Project 1</a></strong>
+            <strong><a href="../../project/project1/">Project1</a></strong>
           </h3>
         </div>
  
 <div class="blog-title">
           <h4>
-         December 1, 2020 
+         January 1, 0001 
             &nbsp;&nbsp;
             
           </h4>
@@ -72,8 +72,310 @@
               
 
 
-<div id="test-project-1" class="section level2">
-<h2>Test Project 1</h2>
+<div id="tyler-zapata-tjz283" class="section level2">
+<h2>Tyler Zapata, tjz283</h2>
+<p>Introduction:
+I found my datasets from <a href="https://github.com/fivethirtyeight/data" class="uri">https://github.com/fivethirtyeight/data</a>&gt; I picked one dataset that had the information about each member of congress from 1947 to 2014, including what congress they served, when they started, which house they were in, and more. My other dataset had information about congressmen during Trump’s presidency including congress, chamber, and statistics about how certain members agreed or disagreed with Trump’s policies. These two datasets were interesting to me because I wanted to see if incumbent members of congress, Republican or Democrat, had a higher chance of agree or disagreeing with Trump’s policies.</p>
+<pre class="r"><code>library(tidyverse)
+getwd()</code></pre>
+<pre><code>## [1] &quot;/stor/home/tjz283/website/content/project&quot;</code></pre>
+<pre class="r"><code>ct &lt;- read_csv(&quot;congress-terms.csv&quot;)
+ctsa &lt;- read_csv(&quot;congress-trump-score-averages.csv&quot;)
+
+ct %&gt;% glimpse()</code></pre>
+<pre><code>## Rows: 18,635
+## Columns: 13
+## $ congress   &lt;dbl&gt; 80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80…
+## $ chamber    &lt;chr&gt; &quot;house&quot;, &quot;house&quot;, &quot;house&quot;, &quot;house&quot;, &quot;house&quot;, &quot;house&quot;, &quot;hou…
+## $ bioguide   &lt;chr&gt; &quot;M000112&quot;, &quot;D000448&quot;, &quot;S000001&quot;, &quot;E000023&quot;, &quot;L000296&quot;, &quot;G0…
+## $ firstname  &lt;chr&gt; &quot;Joseph&quot;, &quot;Robert&quot;, &quot;Adolph&quot;, &quot;Charles&quot;, &quot;William&quot;, &quot;James…
+## $ middlename &lt;chr&gt; &quot;Jefferson&quot;, &quot;Lee&quot;, &quot;Joachim&quot;, &quot;Aubrey&quot;, NA, &quot;A.&quot;, &quot;Joseph…
+## $ lastname   &lt;chr&gt; &quot;Mansfield&quot;, &quot;Doughton&quot;, &quot;Sabath&quot;, &quot;Eaton&quot;, &quot;Lewis&quot;, &quot;Gall…
+## $ suffix     &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ birthday   &lt;date&gt; 1861-02-09, 1863-11-07, 1866-04-04, 1868-03-29, 1868-09-2…
+## $ state      &lt;chr&gt; &quot;TX&quot;, &quot;NC&quot;, &quot;IL&quot;, &quot;NJ&quot;, &quot;KY&quot;, &quot;PA&quot;, &quot;CA&quot;, &quot;NY&quot;, &quot;WI&quot;, &quot;MA&quot;…
+## $ party      &lt;chr&gt; &quot;D&quot;, &quot;D&quot;, &quot;D&quot;, &quot;R&quot;, &quot;R&quot;, &quot;R&quot;, &quot;R&quot;, &quot;D&quot;, &quot;R&quot;, &quot;R&quot;, &quot;D&quot;, &quot;R&quot;…
+## $ incumbent  &lt;chr&gt; &quot;Yes&quot;, &quot;Yes&quot;, &quot;Yes&quot;, &quot;Yes&quot;, &quot;No&quot;, &quot;No&quot;, &quot;Yes&quot;, &quot;Yes&quot;, &quot;Yes…
+## $ termstart  &lt;date&gt; 1947-01-03, 1947-01-03, 1947-01-03, 1947-01-03, 1947-01-0…
+## $ age        &lt;dbl&gt; 85.9, 83.2, 80.7, 78.8, 78.3, 78.0, 77.9, 76.8, 76.0, 75.8…</code></pre>
+<pre class="r"><code>ctsa %&gt;% glimpse()</code></pre>
+<pre><code>## Rows: 2,343
+## Columns: 11
+## $ congress        &lt;dbl&gt; 0, 115, 116, 117, 0, 117, 0, 115, 116, 0, 115, 116, 1…
+## $ chamber         &lt;chr&gt; &quot;house&quot;, &quot;house&quot;, &quot;house&quot;, &quot;house&quot;, &quot;house&quot;, &quot;house&quot;,…
+## $ bioguide        &lt;chr&gt; &quot;A000055&quot;, &quot;A000055&quot;, &quot;A000055&quot;, &quot;A000055&quot;, &quot;A000148&quot;…
+## $ last_name       &lt;chr&gt; &quot;Aderholt&quot;, &quot;Aderholt&quot;, &quot;Aderholt&quot;, &quot;Aderholt&quot;, &quot;Auch…
+## $ state           &lt;chr&gt; &quot;AL&quot;, &quot;AL&quot;, &quot;AL&quot;, &quot;AL&quot;, &quot;MA&quot;, &quot;MA&quot;, &quot;MI&quot;, &quot;MI&quot;, &quot;MI&quot;,…
+## $ district        &lt;dbl&gt; 4, 4, 4, 4, 4, 4, 3, 3, 3, 2, 2, 2, 2, 12, 12, 12, 12…
+## $ party           &lt;chr&gt; &quot;Republican&quot;, &quot;R&quot;, &quot;R&quot;, &quot;R&quot;, &quot;Democrat&quot;, &quot;D&quot;, &quot;Libert…
+## $ votes           &lt;dbl&gt; 182, 95, 84, 3, 3, 3, 180, 96, 2, 182, 94, 85, 3, 183…
+## $ agree_pct       &lt;dbl&gt; 0.97252747, 0.96842105, 0.97619048, 1.00000000, 0.000…
+## $ predicted_agree &lt;dbl&gt; 0.94612090, 0.94634916, 0.94419563, 0.99280009, 0.007…
+## $ net_trump_vote  &lt;dbl&gt; 63.0, 63.0, 63.0, 63.0, -24.2, -24.2, 9.4, 9.4, 9.4, …</code></pre>
+<pre class="r"><code>cttotal &lt;- anti_join(ctsa, ct, by = &quot;bioguide&quot;)</code></pre>
+<p>For the ct data set, there were a total of 18,635 observations. For the ctsa data set, there were a total of 2,343 observations. I chose an anti-join because I wanted to analyze how long a congressperson, Democrat or Republican, was in office for and whether that affected their chances of agreeing with Donald Trump’s policies or not. However, I did not need all of the observations from the ct dataset because some of the members of congress were not serving during Trump’s presidency. After joining, I was left with 893 observations, meaning 17,742 observations were dropped. This is due to the fact that not every congressperson serving from 1947 (or any) to 2014 was still in congress from 2016-2020. Some potential issues with this could be that the averages for agree_pct and predicted_agree may be biased now.</p>
+<pre class="r"><code>cttotal &lt;- cttotal %&gt;% mutate(party = str_replace(party, &quot;\\bD\\b&quot;, 
+    &quot;Democrat&quot;))
+
+cttotal &lt;- cttotal %&gt;% mutate(party = str_replace(party, &quot;\\bR\\b&quot;, 
+    &quot;Republican&quot;))
+
+cttotal &lt;- cttotal %&gt;% mutate(party = str_replace(party, &quot;\\bL\\b&quot;, 
+    &quot;Libertarian&quot;))
+
+cttotal &lt;- cttotal %&gt;% mutate(congress = str_replace(congress, 
+    &quot;\\b0\\b&quot;, &quot;114&quot;))
+
+cttotal &lt;- cttotal %&gt;% mutate(agree_pctile = ntile(agree_pct, 
+    100))
+
+cttotal &lt;- cttotal %&gt;% filter(chamber == &quot;house&quot;)
+
+cttotal &lt;- cttotal %&gt;% group_by(party) %&gt;% filter(n() &gt; 1)
+
+cttotal &lt;- cttotal %&gt;% arrange(last_name) %&gt;% arrange(state)
+
+cttotal &lt;- cttotal %&gt;% select(last_name, chamber, everything()) %&gt;% 
+    select(-bioguide)
+
+cttotal %&gt;% group_by(party, agree_pct) %&gt;% summarize(count = n()) %&gt;% 
+    summarize(n_distinct(count)) %&gt;% table()</code></pre>
+<pre><code>##             n_distinct(count)
+## party        9 12
+##   Democrat   0  1
+##   Republican 1  0</code></pre>
+<pre class="r"><code>mean(as.numeric(cttotal$votes))</code></pre>
+<pre><code>## [1] 67.43317</code></pre>
+<pre class="r"><code>mean(as.numeric(cttotal$agree_pct))</code></pre>
+<pre><code>## [1] 0.5269697</code></pre>
+<pre class="r"><code>mean(as.numeric(cttotal$predicted_agree))</code></pre>
+<pre><code>## [1] 0.5165393</code></pre>
+<pre class="r"><code>mean(as.numeric(cttotal$net_trump_vote))</code></pre>
+<pre><code>## [1] 2.520402</code></pre>
+<pre class="r"><code>sd(as.numeric(cttotal$votes))</code></pre>
+<pre><code>## [1] 56.83063</code></pre>
+<pre class="r"><code>sd(as.numeric(cttotal$agree_pct))</code></pre>
+<pre><code>## [1] 0.4208285</code></pre>
+<pre class="r"><code>sd(as.numeric(cttotal$predicted_agree))</code></pre>
+<pre><code>## [1] 0.348002</code></pre>
+<pre class="r"><code>sd(as.numeric(cttotal$net_trump_vote))</code></pre>
+<pre><code>## [1] 30.33701</code></pre>
+<pre class="r"><code>var(as.numeric(cttotal$votes))</code></pre>
+<pre><code>## [1] 3229.72</code></pre>
+<pre class="r"><code>var(as.numeric(cttotal$agree_pct))</code></pre>
+<pre><code>## [1] 0.1770966</code></pre>
+<pre class="r"><code>var(as.numeric(cttotal$predicted_agree))</code></pre>
+<pre><code>## [1] 0.1211054</code></pre>
+<pre class="r"><code>var(as.numeric(cttotal$net_trump_vote))</code></pre>
+<pre><code>## [1] 920.334</code></pre>
+<pre class="r"><code>quantile(as.numeric(cttotal$votes))</code></pre>
+<pre><code>##   0%  25%  50%  75% 100% 
+##    1    3   88   93  188</code></pre>
+<pre class="r"><code>quantile(as.numeric(cttotal$agree_pct))</code></pre>
+<pre><code>##         0%        25%        50%        75%       100% 
+## 0.00000000 0.06818182 0.66666667 0.94505494 1.00000000</code></pre>
+<pre class="r"><code>quantile(as.numeric(cttotal$predicted_agree))</code></pre>
+<pre><code>##        0%       25%       50%       75%      100% 
+## 0.0000000 0.1535017 0.5490590 0.8731425 0.9943886</code></pre>
+<pre class="r"><code>quantile(as.numeric(cttotal$net_trump_vote))</code></pre>
+<pre><code>##      0%     25%     50%     75%    100% 
+## -88.900 -12.675   6.800  24.125  63.000</code></pre>
+<pre class="r"><code>min(as.numeric(cttotal$votes))</code></pre>
+<pre><code>## [1] 1</code></pre>
+<pre class="r"><code>min(as.numeric(cttotal$agree_pct))</code></pre>
+<pre><code>## [1] 0</code></pre>
+<pre class="r"><code>min(as.numeric(cttotal$predicted_agree))</code></pre>
+<pre><code>## [1] 0</code></pre>
+<pre class="r"><code>min(as.numeric(cttotal$net_trump_vote))</code></pre>
+<pre><code>## [1] -88.9</code></pre>
+<pre class="r"><code>max(as.numeric(cttotal$votes))</code></pre>
+<pre><code>## [1] 188</code></pre>
+<pre class="r"><code>max(as.numeric(cttotal$agree_pct))</code></pre>
+<pre><code>## [1] 1</code></pre>
+<pre class="r"><code>max(as.numeric(cttotal$predicted_agree))</code></pre>
+<pre><code>## [1] 0.9943886</code></pre>
+<pre class="r"><code>max(as.numeric(cttotal$net_trump_vote))</code></pre>
+<pre><code>## [1] 63</code></pre>
+<pre class="r"><code>n_distinct(as.numeric(cttotal$votes))</code></pre>
+<pre><code>## [1] 68</code></pre>
+<pre class="r"><code>n_distinct(as.numeric(cttotal$agree_pct))</code></pre>
+<pre><code>## [1] 285</code></pre>
+<pre class="r"><code>n_distinct(as.numeric(cttotal$predicted_agree))</code></pre>
+<pre><code>## [1] 676</code></pre>
+<pre class="r"><code>n_distinct(as.numeric(cttotal$net_trump_vote))</code></pre>
+<pre><code>## [1] 206</code></pre>
+<pre class="r"><code>cttotal %&gt;% group_by(party) %&gt;% summarize(quantile_votes = quantile(votes, 
+    na.rm = T), min_votes = min(votes, na.rm = T), max_votes = max(votes, 
+    na.rm = T), n_distinct_votes = n_distinct(votes, na.rm = T))</code></pre>
+<pre><code>## # A tibble: 10 x 5
+## # Groups:   party [2]
+##    party      quantile_votes min_votes max_votes n_distinct_votes
+##    &lt;chr&gt;               &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;            &lt;int&gt;
+##  1 Democrat                1         1       188               34
+##  2 Democrat                3         1       188               34
+##  3 Democrat               89         1       188               34
+##  4 Democrat               92         1       188               34
+##  5 Democrat              188         1       188               34
+##  6 Republican              1         1       188               63
+##  7 Republican              3         1       188               63
+##  8 Republican             86         1       188               63
+##  9 Republican             94         1       188               63
+## 10 Republican            188         1       188               63</code></pre>
+<pre class="r"><code>cttotal %&gt;% group_by(congress) %&gt;% summarize(mean_agreepct = mean(agree_pct, 
+    na.rm = T), sd_agreepct = sd(agree_pct, na.rm = T), var_agreepct = var(agree_pct, 
+    na.rm = T))</code></pre>
+<pre><code>## # A tibble: 4 x 4
+##   congress mean_agreepct sd_agreepct var_agreepct
+##   &lt;chr&gt;            &lt;dbl&gt;       &lt;dbl&gt;        &lt;dbl&gt;
+## 1 114              0.557       0.411        0.169
+## 2 115              0.713       0.320        0.102
+## 3 116              0.483       0.418        0.175
+## 4 117              0.423       0.448        0.201</code></pre>
+<pre class="r"><code>cttotal %&gt;% group_by(state) %&gt;% summarize(mean_pa = mean(predicted_agree, 
+    na.rm = T), sd_pa = sd(predicted_agree, na.rm = T), quantile_pa = quantile(predicted_agree, 
+    na.rm = T))</code></pre>
+<pre><code>## # A tibble: 235 x 4
+## # Groups:   state [47]
+##    state mean_pa  sd_pa quantile_pa
+##    &lt;chr&gt;   &lt;dbl&gt;  &lt;dbl&gt;       &lt;dbl&gt;
+##  1 AL      0.882 0.0724       0.799
+##  2 AL      0.882 0.0724       0.823
+##  3 AL      0.882 0.0724       0.886
+##  4 AL      0.882 0.0724       0.943
+##  5 AL      0.882 0.0724       0.960
+##  6 AR      0.798 0.172        0.450
+##  7 AR      0.798 0.172        0.733
+##  8 AR      0.798 0.172        0.853
+##  9 AR      0.798 0.172        0.928
+## 10 AR      0.798 0.172        0.949
+## # … with 225 more rows</code></pre>
+<p>For this section, I started by mutating certain observations in my data to make the names consistent (i.e. changing “D” to “Democrat”, “R” to “Republican” and so on and so forth). Next, I created a new variable using the mutate function called “agree_pctile” by tanking the quantile of “agree_pct”. I filtered down to the “house” because there weren’t enough observations in the senate to make analyzing it worthwhile. Then, I grouped by party, arranged by last_name and state, and selected out bioguide, and placed last_name and chamber towards the front of my data. I also grouped by party and agree_pct and generated a table from my data. Next, I found the summary statistics for my four numeric variables. I think the most interesting results came from when I grouped by “congress” and found that the percentage of house members agreeing with Trump rose in his second year as president for both Republicans and Democrats, but then fell down sharply for the rest of his presidency, even among other Republicans.</p>
+<pre class="r"><code>library(ggplot2)
+
+cttotal2 &lt;- as.data.frame(apply(cttotal, 2, as.numeric))
+
+ctmat &lt;- cttotal2 %&gt;% mutate(across(1:6, as.character)) %&gt;% select_if(is.numeric) %&gt;% 
+    cor(use = &quot;pair&quot;)
+
+tidyct &lt;- cttotal2 %&gt;% as.data.frame %&gt;% rownames_to_column(&quot;var1&quot;) %&gt;% 
+    pivot_longer(-1, names_to = &quot;var2&quot;, values_to = &quot;correlation&quot;)
+
+tidyct &lt;- tidyct %&gt;% na.omit()
+
+tidyct %&gt;% ggplot(aes(var1, var2, fill = correlation)) + geom_tile() + 
+    scale_fill_gradient2(low = &quot;red&quot;, mid = &quot;white&quot;, high = &quot;blue&quot;) + 
+    geom_text(aes(label = round(correlation, )), color = &quot;black&quot;, 
+        size = 4) + theme(axis.text.x = element_text(angle = 90, 
+    hjust = 1)) + ggtitle(&quot;Heatmap of Congress&quot;)</code></pre>
+<p><img src="../../project/Project1_files/figure-html/unnamed-chunk-3-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>ggplot(cttotal, aes(x = state)) + geom_bar(aes(y = predicted_agree, 
+    color = district), stat = &quot;summary&quot;, fun = mean) + scale_y_continuous(lim = c(0, 
+    1)) + xlab(&quot;State&quot;) + ylab(&quot;Probability of Agreeing&quot;) + ggtitle(&quot;Chance of Agreeing by State and District&quot;) + 
+    scale_color_continuous(name = &quot;District&quot;)</code></pre>
+<p><img src="../../project/Project1_files/figure-html/unnamed-chunk-3-2.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>ggplot(data = cttotal, aes(x = congress, y = agree_pct)) + geom_point(size = 4, 
+    aes(color = predicted_agree)) + xlab(&quot;Congress&quot;) + ylab(&quot;Actual Agree Percentages&quot;) + 
+    ggtitle(&quot;Agree Percentages by Congress&quot;) + scale_color_continuous(name = &quot;Predicted Agree PCT&quot;)</code></pre>
+<p><img src="../../project/Project1_files/figure-html/unnamed-chunk-3-3.png" width="672" style="display: block; margin: auto;" /></p>
+<p>For my first plot dealing with states and predicted_agree, I found it interesting (but not necessarily surprising) that mostly rural states tended to have a higher chance of agreeing with Trump’s policies than states that have more urban areas. For my second plot, I plotted the 4 congresses that served while Trump was president and the agree_pct. I found that for the 1st 2 years, the predicted_agree statistic was a good indicator of the actual agree percentages. However, for the last two years, the results seemed to be all over the place.</p>
+<pre class="r"><code>cttotal &lt;- cttotal %&gt;% pivot_longer(cols = c(&quot;agree_pct&quot;, &quot;predicted_agree&quot;), 
+    names_to = &quot;Location&quot;, values_to = &quot;Values&quot;)
+
+cttotal &lt;- cttotal %&gt;% pivot_wider(names_from = &quot;Location&quot;, values_from = &quot;Values&quot;)</code></pre>
+<p>Because my data was already tidy, I decided to untidy it with pivot_longer to split up the agree_pct and predicted_agree variables to “Location” and “Values”. From my newly created columns, I re-tidied them using pivot_wider to remake the variables I had untidied.</p>
+<pre class="r"><code>library(cluster)
+
+cttotal %&gt;% ungroup() %&gt;% mutate(gmeanSL = mean(agree_pct), gmeanPW = mean(predicted_agree)) %&gt;% 
+    group_by(gmeanPW, gmeanSL, party) %&gt;% summarize(meanSL = mean(agree_pct), 
+    meanPW = mean(predicted_agree), WSS = sum((agree_pct - meanSL)^2 + 
+        (predicted_agree - meanPW)^2), BSS = sum((meanSL - gmeanSL)^2 + 
+        (meanPW - gmeanPW)^2)) %&gt;% ungroup() %&gt;% summarize(BSS = sum(BSS), 
+    WSS = sum(WSS))</code></pre>
+<pre><code>## # A tibble: 1 x 2
+##     BSS   WSS
+##   &lt;dbl&gt; &lt;dbl&gt;
+## 1  180.  60.7</code></pre>
+<pre class="r"><code>cttotal_num &lt;- cttotal2 %&gt;% scale()
+
+kmeans1 &lt;- kmeans(cttotal2[!is.na(cttotal2)], 3)
+kmeans1</code></pre>
+<pre><code>## K-means clustering with 3 clusters of sizes 3338, 1511, 807
+## 
+## Cluster means:
+##          [,1]
+## 1   0.5441259
+## 2 108.6909332
+## 3  40.9830827
+## 
+## Clustering vector:
+##   [1] 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2
+##  [38] 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2
+##  [75] 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2
+##  [ reached getOption(&quot;max.print&quot;) -- omitted 5556 entries ]
+## 
+## Within cluster sum of squares by cluster:
+## [1] 520178.4 758782.7 188982.5
+##  (between_SS / total_SS =  89.3 %)
+## 
+## Available components:
+## 
+## [1] &quot;cluster&quot;      &quot;centers&quot;      &quot;totss&quot;        &quot;withinss&quot;     &quot;tot.withinss&quot;
+## [6] &quot;betweenss&quot;    &quot;size&quot;         &quot;iter&quot;         &quot;ifault&quot;</code></pre>
+<pre class="r"><code>cttotal2 &lt;- cttotal2 %&gt;% select(-chamber, -last_name, -party, 
+    -state)
+
+library(cluster)
+sil_width &lt;- vector()
+for (i in 2:10) {
+    kms &lt;- kmeans(cttotal2, centers = i)
+    sil &lt;- silhouette(kms$cluster, dist(cttotal2))
+    sil_width[i] &lt;- mean(sil[, 3])
+}
+ggplot() + geom_line(aes(x = 1:10, y = sil_width)) + scale_x_continuous(name = &quot;k&quot;, 
+    breaks = 1:10)</code></pre>
+<p><img src="../../project/Project1_files/figure-html/unnamed-chunk-5-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>pam2 &lt;- cttotal2 %&gt;% scale %&gt;% pam(3)
+pam2</code></pre>
+<pre><code>## Medoids:
+##       ID   congress    district      votes  agree_pct predicted_agree
+## [1,] 790 -0.3719181 -0.38126451  0.5026661  0.9755287       1.1329547
+## [2,] 746  1.2792348 -0.38126451 -1.1337754  1.1240453       0.6195251
+## [3,] 181  0.4536583 -0.08824448  0.3618970 -1.0902017      -1.1931946
+##      net_trump_vote agree_pctile
+## [1,]      0.4739953    0.7526236
+## [2,]      0.7344033    1.3708410
+## [3,]     -0.5083033   -0.8616108
+## Clustering vector:
+##   [1] 1 2 1 2 1 1 1 2 1 1 1 3 1 1 1 2 1 1 1 2 3 3 3 3 1 1 1 2 1 1 1 3 3 3 3 3 3
+##  [38] 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 2 3 3 3 3 3 3 3 3 3 3 3
+##  [75] 3 3 3 3 3 3 1 1 3 3 3 3 3 3 3 1 2 3 3 3 3 3 3 3 3 3
+##  [ reached getOption(&quot;max.print&quot;) -- omitted 708 entries ]
+## Objective function:
+##    build     swap 
+## 1.870715 1.760012 
+## 
+## Available components:
+##  [1] &quot;medoids&quot;    &quot;id.med&quot;     &quot;clustering&quot; &quot;objective&quot;  &quot;isolation&quot; 
+##  [6] &quot;clusinfo&quot;   &quot;silinfo&quot;    &quot;diss&quot;       &quot;call&quot;       &quot;data&quot;</code></pre>
+<pre class="r"><code>round(sum(diag(as.matrix(ctmat[, 1:5])))/sum(ctmat[, 1:5]), 4)</code></pre>
+<pre><code>## [1] 0.3342</code></pre>
+<pre class="r"><code>pam2$silinfo$avg.width</code></pre>
+<pre><code>## [1] 0.3118915</code></pre>
+<pre class="r"><code>cttotal2 %&gt;% slice(pam2$id.med)</code></pre>
+<pre><code>##   congress district votes  agree_pct predicted_agree net_trump_vote
+## 1      115        6    96 0.93750000       0.9108098           16.9
+## 2      117        6     3 1.00000000       0.7321353           24.8
+## 3      116        9    88 0.06818182       0.1013052          -12.9
+##   agree_pctile
+## 1           72
+## 2           90
+## 3           25</code></pre>
+<pre class="r"><code>pamclust &lt;- cttotal2 %&gt;% mutate(cluster = as.factor(pam2$clustering))
+
+pamclust %&gt;% ggplot(aes(agree_pct, predicted_agree, color = cluster)) + 
+    geom_point()</code></pre>
+<p><img src="../../project/Project1_files/figure-html/unnamed-chunk-5-2.png" width="672" style="display: block; margin: auto;" /></p>
+<p>TO start, I used the silhouette width to determine the best number of clusters to use and I decided on 3 clusters because they were sufficient to capture enough of the actual data. From there, I determined the average width of the silhouettes to be about 0.312. This means there was not a strong correlation among the clusters or the factors affecting whether or not a congressperson would agree or disagree with Trump’s policies. This can clearly be seen by the way the clusters aren’t very well defined in the data. From my visualization, there doesn’t appear to be a clear determinant for agreeing with Trump other than party status. However, this relationship isn’t ver strong and would require more data.</p>
 </div>
 
             

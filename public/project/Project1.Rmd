@@ -1,0 +1,182 @@
+---
+title: "Project1"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = TRUE, fig.align = "center", 
+    warning = F, message = F, tidy = TRUE, tidy.opts = list(width.cutoff = 60), 
+    R.options = list(max.print = 100))
+```
+
+## Tyler Zapata, tjz283
+
+Introduction:
+I found my datasets from https://github.com/fivethirtyeight/data> I picked one dataset that had the information about each member of congress from 1947 to 2014, including what congress they served, when they started, which house they were in, and more. My other dataset had information about congressmen during Trump's presidency including congress, chamber, and statistics about how certain members agreed or disagreed with Trump's policies. These two datasets were interesting to me because I wanted to see if incumbent members of congress, Republican or Democrat, had a higher chance of agree or disagreeing with Trump's policies.
+
+
+```{R}
+library(tidyverse)
+getwd()
+ct <- read_csv("congress-terms.csv")
+ctsa <- read_csv("congress-trump-score-averages.csv")
+
+ct %>% glimpse()
+
+ctsa %>% glimpse()
+
+cttotal <- anti_join(ctsa,ct, by= "bioguide")
+```
+
+
+For the ct data set, there were a total of 18,635 observations. For the ctsa data set, there were a total of 2,343 observations. I chose an anti-join because I wanted to analyze how long a congressperson, Democrat or Republican, was in office for and whether that affected their chances of agreeing with Donald Trump's policies or not. However, I did not need all of the observations from the ct dataset because some of the members of congress were not serving during Trump's presidency. After joining, I was left with 893 observations, meaning 17,742 observations were dropped. This is due to the fact that not every congressperson serving from 1947 (or any) to 2014 was still in congress from 2016-2020. Some potential issues with this could be that the averages for agree_pct and predicted_agree may be biased now. 
+
+```{R}
+cttotal <- cttotal %>% mutate(party = str_replace(party, "\\bD\\b", "Democrat"))
+
+cttotal <- cttotal %>% mutate(party = str_replace(party, "\\bR\\b", "Republican"))
+
+cttotal <- cttotal %>% mutate(party = str_replace(party, "\\bL\\b", "Libertarian"))
+
+cttotal <- cttotal %>% mutate(congress = str_replace(congress, "\\b0\\b", "114"))
+
+cttotal <- cttotal %>% mutate(`agree_pctile` = ntile(agree_pct,100))
+
+cttotal <- cttotal %>% filter(chamber=="house")
+
+cttotal <- cttotal %>% group_by(party) %>% filter(n()>1)
+
+cttotal <- cttotal %>% arrange(last_name) %>% arrange(state)
+
+cttotal <- cttotal %>% select(last_name, chamber, everything()) %>% select(-bioguide)
+
+cttotal %>% group_by(party,agree_pct) %>% summarize(count=n()) %>% summarize(n_distinct(count)) %>%  table()
+
+mean(as.numeric(cttotal$votes))
+mean(as.numeric(cttotal$agree_pct))
+mean(as.numeric(cttotal$predicted_agree))
+mean(as.numeric(cttotal$net_trump_vote))
+
+sd(as.numeric(cttotal$votes))
+sd(as.numeric(cttotal$agree_pct))
+sd(as.numeric(cttotal$predicted_agree))
+sd(as.numeric(cttotal$net_trump_vote))
+
+var(as.numeric(cttotal$votes))
+var(as.numeric(cttotal$agree_pct))
+var(as.numeric(cttotal$predicted_agree))
+var(as.numeric(cttotal$net_trump_vote))
+
+quantile(as.numeric(cttotal$votes))
+quantile(as.numeric(cttotal$agree_pct))
+quantile(as.numeric(cttotal$predicted_agree))
+quantile(as.numeric(cttotal$net_trump_vote))
+
+min(as.numeric(cttotal$votes))
+min(as.numeric(cttotal$agree_pct))
+min(as.numeric(cttotal$predicted_agree))
+min(as.numeric(cttotal$net_trump_vote))
+
+max(as.numeric(cttotal$votes))
+max(as.numeric(cttotal$agree_pct))
+max(as.numeric(cttotal$predicted_agree))
+max(as.numeric(cttotal$net_trump_vote))
+
+n_distinct(as.numeric(cttotal$votes))
+n_distinct(as.numeric(cttotal$agree_pct))
+n_distinct(as.numeric(cttotal$predicted_agree))
+n_distinct(as.numeric(cttotal$net_trump_vote))
+
+
+cttotal %>% group_by(party) %>% summarize(quantile_votes=quantile(votes, na.rm=T),min_votes=min(votes, na.rm=T),max_votes=max(votes, na.rm=T),n_distinct_votes=n_distinct(votes, na.rm=T))
+
+cttotal %>% group_by(congress) %>% summarize(mean_agreepct=mean(agree_pct,na.rm=T), sd_agreepct=sd(agree_pct, na.rm=T),var_agreepct=var(agree_pct, na.rm=T))
+
+cttotal %>% group_by(state) %>% summarize(mean_pa=mean(predicted_agree,na.rm=T), sd_pa=sd(predicted_agree, na.rm=T),quantile_pa=quantile(predicted_agree, na.rm=T)) 
+
+```
+
+For this section, I started by mutating certain observations in my data to make the names consistent (i.e. changing "D" to "Democrat", "R" to "Republican" and so on and so forth). Next, I created a new variable using the mutate function called "agree_pctile" by tanking the quantile of "agree_pct". I filtered down to the "house" because there weren't enough observations in the senate to make analyzing it worthwhile. Then, I grouped by party, arranged by last_name and state, and selected out bioguide, and placed last_name and chamber towards the front of my data. I also grouped by party and agree_pct and generated a table from my data. Next, I found the summary statistics for my four numeric variables. I think the most interesting results came from when I grouped by "congress" and found that the percentage of house members agreeing with Trump rose in his second year as president for both Republicans and Democrats, but then fell down sharply for the rest of his presidency, even among other Republicans.
+
+```{R}
+library(ggplot2)
+
+cttotal2 <- as.data.frame(apply(cttotal, 2, as.numeric))
+
+ctmat <- cttotal2 %>%
+  mutate(across(1:6, as.character)) %>% select_if(is.numeric) %>% cor(use="pair")
+
+tidyct <- cttotal2 %>% as.data.frame %>% rownames_to_column("var1") %>%
+pivot_longer(-1,names_to="var2",values_to="correlation")
+
+tidyct <- tidyct %>% na.omit()
+
+tidyct%>%ggplot(aes(var1,var2,fill=correlation))+
+geom_tile()+
+scale_fill_gradient2(low="red",mid="white",high="blue")+ 
+geom_text(aes(label=round(correlation,)),color = "black", size = 4 )+ 
+theme(axis.text.x = element_text(angle = 90, hjust=1)) + ggtitle("Heatmap of Congress")
+
+ggplot(cttotal, aes(x = state))+
+geom_bar(aes(y=predicted_agree, color= district), stat="summary", fun=mean) + scale_y_continuous(lim=c(0,1)) + xlab("State") +ylab("Probability of Agreeing") + ggtitle("Chance of Agreeing by State and District") + scale_color_continuous(name = "District") 
+
+ggplot(data = cttotal, aes(x = congress, y = agree_pct)) +
+geom_point(size=4, aes(color = predicted_agree)) + xlab("Congress") +ylab("Actual Agree Percentages") + ggtitle("Agree Percentages by Congress") +  scale_color_continuous(name = "Predicted Agree PCT") 
+
+
+```
+
+For my first plot dealing with states and predicted_agree, I found it interesting (but not necessarily surprising) that mostly rural states tended to have a higher chance of agreeing with Trump's policies than states that have more urban areas. For my second plot, I plotted the 4 congresses that served while Trump was president and the agree_pct. I found that for the 1st 2 years, the predicted_agree statistic was a good indicator of the actual agree percentages. However, for the last two years, the results seemed to be all over the place.
+
+
+```{R}
+cttotal <- cttotal %>% pivot_longer(cols=c("agree_pct","predicted_agree"), names_to="Location", values_to="Values")
+
+cttotal <- cttotal%>%
+  pivot_wider(names_from="Location",values_from="Values")
+```
+
+Because my data was already tidy, I decided to untidy it with pivot_longer to split up the agree_pct and predicted_agree variables to "Location" and "Values". From my newly created columns, I re-tidied them using pivot_wider to remake the variables I had untidied. 
+
+```{R}
+library(cluster)
+
+cttotal%>%ungroup()%>%mutate(gmeanSL=mean(agree_pct),gmeanPW=mean(predicted_agree))%>%
+group_by(gmeanPW,gmeanSL, party)%>%
+summarize(meanSL=mean(agree_pct), meanPW=mean(predicted_agree),
+WSS=sum((agree_pct-meanSL)^2+(predicted_agree-meanPW)^2),
+BSS=sum((meanSL-gmeanSL)^2+(meanPW-gmeanPW)^2))%>%ungroup()%>%
+summarize(BSS=sum(BSS),WSS=sum(WSS))
+
+cttotal_num <- cttotal2 %>% scale()
+
+kmeans1 <- kmeans(cttotal2[!is.na(cttotal2)], 3)
+kmeans1
+
+cttotal2 <- cttotal2 %>%select(-chamber,-last_name,-party,-state)
+
+library(cluster)
+sil_width<-vector()
+for(i in 2:10){
+kms <- kmeans(cttotal2,centers=i) 
+sil <- silhouette(kms$cluster,dist(cttotal2)) 
+sil_width[i]<-mean(sil[,3])
+}
+ggplot()+geom_line(aes(x=1:10,y=sil_width))+scale_x_continuous(name="k",breaks=1:10)
+
+pam2 <- cttotal2 %>% scale %>% pam(3)
+pam2
+
+round(sum(diag(as.matrix(ctmat[,1:5])))/sum(ctmat[,1:5]),4)
+
+pam2$silinfo$avg.width
+
+cttotal2%>%slice(pam2$id.med)
+
+pamclust<-cttotal2 %>% mutate(cluster=as.factor(pam2$clustering))
+
+pamclust %>% ggplot(aes(agree_pct,predicted_agree,color=cluster)) + geom_point()
+```
+
+TO start, I used the silhouette width to determine the best number of clusters to use and I decided on 3 clusters because they were sufficient to capture enough of the actual data. From there, I determined the average width of the silhouettes to be about 0.312. This means there was not a strong correlation among the clusters or the factors affecting whether or not a congressperson would agree or disagree with Trump's policies. This can clearly be seen by the way the clusters aren't very well defined in the data. From my visualization, there doesn't appear to be a clear determinant for agreeing with Trump other than party status. However, this relationship isn't ver strong and would require more data. 
+

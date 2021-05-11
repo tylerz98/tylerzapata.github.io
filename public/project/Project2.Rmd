@@ -1,0 +1,324 @@
+---
+title: "Project2"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Tyler Zapata
+
+Introduction: 
+
+I found my datasets from https://github.com/fivethirtyeight/data> I picked one dataset that had the information about police killings from the year 2015. The variables I will be focusing on are whether or not a person was armed (armed), age (age), gender (gender), race/ethnicity (raceethnicity), cause (cause), the proportion of adults 25+ in the population with BA or higher (college), and the percentage of that population that is white, black, or hispanic (share_white, share_black, and share_hispanic). There are a total of 467 observations in this dataset.
+
+ 
+```{R}
+library(fivethirtyeight)
+pk <- police_killings
+library(tidyverse)
+
+
+pk <- pk %>% select(age, gender, raceethnicity, armed, college, share_white, share_black, share_hispanic, cause)
+
+pk <- pk %>% mutate(cause = str_replace(cause, "\\bDeath in custody\\b", "Other"))
+pk <- pk %>% mutate(cause = str_replace(cause, "\\bTaser\\b", "Other"))
+pk <- pk %>% mutate(cause = str_replace(cause, "\\bStruck by vehicle\\b", "Other"))
+
+pk <- pk %>% mutate(armed = str_replace(armed, "\\bFirearm\\b", "Yes"))
+pk <- pk %>% mutate(armed = str_replace(armed, "\\bNon-lethal firearm\\b", "Yes"))
+pk <- pk %>% mutate(armed = str_replace(armed, "\\bOther\\b", "Yes"))
+pk <- pk %>% mutate(armed = str_replace(armed, "\\bKnife\\b", "Yes"))
+pk <- pk %>% mutate(armed = str_replace(armed, "\\bVehicle\\b", "Yes"))
+pk <- pk %>% mutate(armed = str_replace(armed, "\\bDisputed\\b", "No"))
+
+pk <- pk %>% na.omit()
+
+```
+
+## 1. MANOVA
+
+
+```{R}
+library(rstatix)
+
+man1<-manova(cbind(college,share_white, share_black, share_hispanic)~cause, data=pk)
+summary(man1)
+summary.aov(man1)
+
+pk%>%group_by(cause)%>%summarize(mean(college),mean(share_white),mean(share_black),mean(share_hispanic))
+
+pairwise.t.test(pk$college,pk$cause, p.adj="none")
+pairwise.t.test(pk$share_white,pk$cause, p.adj="none")
+pairwise.t.test(pk$share_black,pk$cause, p.adj="none")
+pairwise.t.test(pk$share_hispanic,pk$cause, p.adj="none")
+
+#1 MANOVA, 4 ANOVAs, 10 t-tests -> 0.05/15= 0.0033
+```
+
+I have done 1 MANOVA, 4 ANOVAs, and 10 t-tests. As such, there is a higher probability of a type I error (probability = 1-.95^15 = 0.537), and I will adjust my p-value: 0.05/15= 0.0033, my adjusted p-value. Because of this, every p-value calculated is not significant, meaning there is no mean difference between groups. For the MANOVA assumptions, this dataset did have a random sample, but failed to meet the other assumptions.
+
+
+## 2. Randomization Test
+
+
+```{R}
+
+pk%>%group_by(cause)%>%
+summarize(means=mean(college))%>%summarize(`mean_diff:`=diff(means))
+
+rand_dist<-vector()
+for(i in 1:5000){
+new<-data.frame(college=sample(pk$college),cause=pk$cause)
+rand_dist[i]<-mean(new[new$cause=="Gunshot",]$college)-
+mean(new[new$cause=="Other",]$college)
+}
+
+{hist(rand_dist,main="",ylab=""); abline(v = c(-0.0112, 0.0112),col="red")}
+
+mean(rand_dist>0.0112 | rand_dist < -0.0112)
+```
+
+The null hypothesis is that being armed was even across all proportions of people over the age of 25 with at least a bachelor's degree that were killed by police. The alternative hypothesis is that being armed different across the proportions of people over the age of 25 with at least a bachelor's degree. According to the randomization test, I fail to reject the null hypothesis (p-value= 0.642).
+
+## 3. Linear Regression
+
+```{R}
+
+center_scale <- function(x) {
+    scale(x, scale = FALSE)
+}
+
+pk$share_white_center <- center_scale(pk$share_white)
+pk$share_hispanic_center <- center_scale(pk$share_hispanic)
+pk$share_black_center <- center_scale(pk$share_black)
+
+
+
+fit1<-lm(college~raceethnicity+share_black_center+share_hispanic_center+share_white_center, data=pk)
+summary(fit1)
+
+pk%>%ggplot(aes(share_white_center+share_black_center,college))+geom_point()+geom_smooth(method = 'lm',se=F)
+
+
+library(sandwich); library(lmtest)
+
+resids1<-lm(college~raceethnicity+share_black_center+share_hispanic_center+share_white_center, data=pk)$residuals
+ggplot()+geom_histogram(aes(resids1),bins=10)
+
+fitted1<-lm(college~raceethnicity+share_black_center+share_hispanic_center+share_white_center, data=pk)$fitted.values
+ggplot()+geom_point(aes(fitted1,resids1))+geom_hline(yintercept=0, color='red')
+
+ggplot()+geom_histogram(aes(resids1), bins=20)
+bptest(fit1)
+
+summary(fit1)$coef[,1:4]
+coeftest(fit1, vcov = vcovHC(fit1))[,1:4]
+
+```
+
+According to my first linear regression, these variables do not explain the likelihood of having at least a bachelor's degree very well. The highest estimate is Black as a person's race, which explains 1.6% of the variation in college percentage. My model explains 22.5% of the variation in college education in these cities. According to my linear regressions, the models do not pass the linearity, normality, or homoskedasticity assumptions. When running the regression with and without the SEs, the significant variables were significant before and after. Being Native American, and the percentage of white, black, and hispanic people in a city were all significant explanatory variables.
+
+
+## 4. Bootstrap Errors
+
+```{R}
+library(dplyr)
+
+boot_dat<- sample_frac(pk, replace=T)
+
+samp_distn<-replicate(5000, {
+boot_dat <- sample_frac(pk, replace=T) 
+fit <- lm(college~raceethnicity+share_black_center+share_hispanic_center+share_white_center, data=boot_dat) 
+coef(fit)
+})
+
+resid_resamp<-replicate(5000,{
+new_resids<-sample(resids1,replace=TRUE) 
+pk$new_y<-fitted1+new_resids 
+fit<-lm(college~raceethnicity+share_black_center+share_hispanic_center+share_white_center, data=boot_dat) 
+coef(fit) #save coefficient estimates (b0, b1, etc)
+})
+
+
+resid_resamp%>%t%>%as.data.frame%>%summarize_all(sd)
+
+
+```
+
+After computing bootstrapped SEs, I obtained 0 values for my intercepts and explanatory variables. This would give me further evidence that I don't have a great model for predicting the percentage of people who have earned at least a Bachelor's degree.
+
+
+
+## 5. Logistic Regression
+
+```{R}
+class_diag<-function(probs,truth){
+  
+  if(is.numeric(truth)==FALSE & is.logical(truth)==FALSE) truth<-as.numeric(truth)-1
+  
+  tab<-table(factor(probs>.5,levels=c("FALSE","TRUE")),truth)
+  prediction<-ifelse(probs>.5,1,0)
+  acc=mean(truth==prediction)
+  sens=mean(prediction[truth==1]==1)
+  spec=mean(prediction[truth==0]==0)
+  ppv=mean(truth[prediction==1]==1)
+  f1=2*(sens*ppv)/(sens+ppv)
+  
+  #CALCULATE EXACT AUC
+  ord<-order(probs, decreasing=TRUE)
+  probs <- probs[ord]; truth <- truth[ord]
+  
+  TPR=cumsum(truth)/max(1,sum(truth)) 
+  FPR=cumsum(!truth)/max(1,sum(!truth))
+  
+  dup<-c(probs[-1]>=probs[-length(probs)], FALSE)
+  TPR<-c(0,TPR[!dup],1); FPR<-c(0,FPR[!dup],1)
+  
+  n <- length(TPR)
+  auc<- sum( ((TPR[-1]+TPR[-n])/2) * (FPR[-1]-FPR[-n]) )
+
+  data.frame(acc,sens,spec,ppv,auc)
+}
+
+head(pk)
+
+pk <- pk %>% mutate(cause = str_replace(cause, "\\bGunshot\\b", "1"))
+pk <- pk %>% mutate(cause = str_replace(cause, "\\bOther\\b", "0"))
+pk$cause <- as.factor(pk$cause)
+
+fit2 <- glm(cause~raceethnicity+college, data=pk, family="binomial")
+summary(fit2)
+exp(coef(fit2)) %>% round(3)
+
+probs <- predict(fit2, type="response")
+
+class_diag(probs,pk$cause)
+
+table(predict=as.numeric(probs>.5),truth=pk$cause)%>%addmargins
+
+
+pk$logit<-predict(fit2,type="link") #get log-odds for everyone
+
+## Density plot of log-odds for each outcome:
+
+pk%>%ggplot()+geom_density(aes(logit,color=cause,fill=cause), alpha=.4)+
+  theme(legend.position=c(.85,.85))+geom_vline(xintercept=0)+xlab("logit (log-odds)")+
+  geom_rug(aes(logit,color=cause))+
+  geom_text(x=-5,y=.07,label="TN = 431")+
+  geom_text(x=-1.75,y=.008,label="FN = 19")+
+  geom_text(x=1,y=.006,label="FP = 13")+
+  geom_text(x=5,y=.04,label="TP = 220")
+
+library(plotROC)
+
+ROCplot<-ggplot(pk)+geom_roc(aes(d=cause,m=probs), n.cuts=0) 
+
+ROCplot
+calc_auc(ROCplot)
+
+```
+For the coefficients, the races/ethnicities represent the chance of being killed by a gunshot as opposed to another method for each race (.68, 3.35, -0.75, and 1.52, for Black, Hispanic/Latino, Native American, and White, respectively). Additionally, for every percent increase in overall population of people over the age f 25 who have earned at least a bachelor's degree, there is a .58 increase in the chance of being shot. However, the only significant coefficients are the races/ethnicities of Hispanic/Latino and White. The AUC is 0.6855, the accuracy is 0.8858, the sensitivity is 0.9974, the specificity is 0.02, and the precision is 0.8876. Based on these values, it would appear as though my model is poorly fitted to the data. Even though the accuracy, sensitivity, and precision are relatively high, it doesn't seem as though these explanatory variables can actually explain the likelihood of being shot. According to the ROC graph and value (0.6855), this model does very poorly in predicting whether or not a person will be shot. 
+
+
+
+
+
+## 6. Logistic Regression with 10-fold CV and LASSO
+
+
+```{R}
+
+fit3 <- glm(cause~(.), data=pk, family="binomial")
+summary(fit3)
+exp(coef(fit3)) %>% round(3)
+
+probs2 <- predict(fit3, type="response")
+
+class_diag(probs2,pk$cause)
+
+table(predict=as.numeric(probs2>.5),truth=pk$cause)%>%addmargins
+
+
+
+set.seed(1234)
+k=10 
+
+data<-pk[sample(nrow(pk)),]
+folds<-cut(seq(1:nrow(pk)),breaks=k,labels=F) 
+
+diags<-NULL
+for(i in 1:k){
+  
+  train<-data[folds!=i,] 
+  test<-data[folds==i,]
+  truth<-test$cause
+  
+  
+  fit3<-glm(cause~(.), data=pk, family="binomial")
+  probs2<-predict(fit3,newdata = test,type="response")
+  
+  diags<-rbind(diags,class_diag(probs2,truth))
+}
+
+summarize_all(diags,mean)
+
+
+library(glmnet)
+
+y<-as.matrix(pk$cause)
+x<-model.matrix(cause~(.),data=pk)[,-1] 
+head(x)
+
+cv <- cv.glmnet(x,y, family="binomial") 
+lasso<-glmnet(x,y,family="binomial",lambda=cv$lambda.1se)
+coef(lasso)
+
+
+fit4 <- glm(cause~age, data=pk, family="binomial")
+summary(fit4)
+exp(coef(fit4)) %>% round(3)
+
+probs3 <- predict(fit4, type="response")
+
+class_diag(probs3,pk$cause)
+
+set.seed(1234)
+k2=10 
+
+data2<-pk[sample(nrow(pk)),]
+folds2<-cut(seq(1:nrow(pk)),breaks=k,labels=F) 
+
+diags2<-NULL
+for(i in 1:k){
+  
+  train<-data2[folds!=i,] 
+  test<-data2[folds==i,]
+  truth<-test$cause
+  
+  
+  fit4<-glm(cause~age, data=pk, family="binomial")
+  probs3<-predict(fit4,newdata = test,type="response")
+  
+  diags2<-rbind(diags2,class_diag(probs3,truth))
+}
+
+summarize_all(diags2,mean)
+
+```
+
+The AUC is 0.757, the accuracy is 0.881, the sensitivity is 0.992, the specificity is 0.02, and the precision is 0.887. While the accuracy, sensitivity, and precision have all decreased by a small amount, the auc is much higher because it's fit to the data. Regardless, this is still not a great model for predicting the likelihood of being killed by gunshot as opposed to something else. AFter running the 10-fold CV, I obtained an AUC value of 0.735 which is lower than the previous AUC. This suggests that my model is overfitted by a small amount, but still not very good at predicting the likelihood of being killed by gunshot. After performing a LASSO, only the age variable is retained. For the final out-of-sample AUC, I obtained a value of 0.6296, which is much lower than all of the other AUC's calculated thus far. While the sensitivity is perfect, the accuracy is the same as the model from #5 and the precision is lower. Overall, this is a terrible model for predicting the likelihood of being killed by a gunshot.
+
+
+echo "print('this is my test file before I build my website')" > testfile.py
+
+git init #initialize git respository in your home directory
+git add testfile.py #replace testfile.py with any file in your home directory you want to upload: 
+git commit -m "test commit" #this commits the file and adds a message (required)
+git remote add origin https://github.com/tylerz98/test_repo.git
+
+
+git remote set-url origin https://github.com/YourGithubUsername/YourGithubUsername.github.io.git
+
+blogdown::serve_site()

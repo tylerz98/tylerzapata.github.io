@@ -1,6 +1,6 @@
 +++
-title = ""
-description = ""
+title = "Dog With A Blog"
+description = "Just dogs, blogging and such"
 tags = []
 categories = []
 +++
@@ -22,3 +22,9 @@ Oh chocolate chocolate cake, it makes me want to lay in the halls (in the halls)
 
 ```
 ![](/post/2021-05-09-dog-with-a-blog_files/Screenshot (91).png)
+
+
+git remote add origin https://github.com/YourGithubUsername/YourGithubUsername.github.io.git #update with your github username
+git push origin master
+
+git remote set-url origin https://github.com/YourGithubUsername/YourGithubUsername.github.io.git
