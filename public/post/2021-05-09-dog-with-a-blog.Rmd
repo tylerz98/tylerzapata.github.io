@@ -1,9 +1,9 @@
-+++
+---
 title = "Dog With A Blog"
 description = "Just dogs, blogging and such"
 tags = []
 categories = []
-+++
+---
 
 Oh chocolate chocolate cake, it makes me want to lay in the halls (in the halls) in the halls (in the halls) of old UT.
 
